@@ -1,0 +1,16 @@
+crewai[openai]
+langchain
+langchain-core
+langchain-community
+sentence-transformers
+chromadb
+python-dotenv
+streamlit
+feedparser
+beautifulsoup4
+lxml
+trafilatura
+newspaper3k
+pandas
+tqdm
+requests

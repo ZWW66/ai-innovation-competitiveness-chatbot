@@ -1,0 +1,26 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+
+# Secrets
+.env
+.env.*
+!.env.example
+
+# macOS / editors
+.DS_Store
+.vscode/
+.idea/
+
+# Separate legacy repository kept beside this project
+/ AI Innovation & Competitiveness Chatbot/
+
+# Build and cache artifacts
+.pytest_cache/
+.mypy_cache/
+.cache/
+dist/
+build/
+*.egg-info/
