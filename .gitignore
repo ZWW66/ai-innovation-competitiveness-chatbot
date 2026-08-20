@@ -14,12 +14,13 @@ venv/
 .vscode/
 .idea/
 
-# Separate legacy repository kept beside this project
-/ AI Innovation & Competitiveness Chatbot/
+# Generated news snapshots (the committed seed CSV is added explicitly)
+data/news_articles_combined_*.csv
 
 # Build and cache artifacts
 .pytest_cache/
 .mypy_cache/
+.ruff_cache/
 .cache/
 dist/
 build/

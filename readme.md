@@ -1,118 +1,99 @@
 # AI Innovation & Competitiveness Chatbot
-### CrewAI • LangChain RAG • Sentence Transformers • Streamlit UI
 
-This project implements a **domain-specific expert chatbot** that answers questions about **AI innovation, competitiveness, and industry developments**, using **real news articles** pulled from RSS feeds.
+A domain-specific chatbot for questions about AI innovation, industrial competitiveness, policy, compute, talent, and market developments. Answers are grounded in an RSS-derived news corpus and include source links.
 
-It integrates:
+## Architecture
 
-- ✅ CrewAI multi-agent orchestration
-- ✅ LangChain RAG pipeline
-- ✅ Sentence Transformers embeddings
-- ✅ Chroma vector database
-- ✅ Streamlit web UI
-- ✅ Advanced prompting + context injection
-- ✅ Custom RSS news ingestion + text extraction
+- **CrewAI** orchestrates a News Researcher and an AI Competitiveness Expert.
+- **LangChain RAG** retrieves relevant news passages.
+- **Sentence Transformers** (`all-MiniLM-L6-v2`) creates local embeddings.
+- **Chroma** stores the persistent vector index.
+- **GPT-5.6 Luna** generates cost-conscious answers.
+- **Streamlit** provides the chat interface.
 
----
+## Project Structure
 
-## 📁 Project Structure
-
-```
-Group_Project/
+```text
+ai-innovation-competitiveness-chatbot/
+├── crew/                 # Agents, tasks, tools, and LLM configuration
 ├── data/
-│   ├── news_articles_*.csv
-│   └── vectorstore_news_ai/
-├── rag/
-│   ├── ingest.py
-│   ├── retriever.py
-│   └── __init__.py
-├── crew/
-│   ├── agents.py
-│   ├── tools.py
-│   ├── tasks.py
-│   ├── llm.py
-│   ├── main.py
-│   └── __init__.py
-├── frontend/
-│   ├── app.py
-│   └── __init__.py
-├── news_ingestion/
-│   ├── scrape_news.py
-│   └── ...
-├── .env
-├── requirements.txt
-└── README.md
+│   ├── news_articles_combined_*.csv
+│   └── vectorstore_news_ai/
+├── frontend/app.py       # Streamlit application
+├── news_ingestion/       # RSS/Atom collection pipeline
+├── rag/                  # Embeddings, ingestion, and retrieval
+├── tests/
+├── .env.example
+└── requirements.txt
 ```
 
----
+## Installation
 
-## ✅ Installation Instructions
-
-### 1️⃣ Create a virtual environment
 ```bash
 python3 -m venv .venv
 source .venv/bin/activate
+pip install -U -r requirements.txt
+cp .env.example .env
 ```
 
-### 2️⃣ Install dependencies
-```bash
-pip install -U \
-  crewai "crewai[openai]" \
-  langchain langchain-core langchain-community \
-  sentence-transformers \
-  chromadb \
-  python-dotenv \
-  streamlit \
-  feedparser \
-  beautifulsoup4 lxml \
-  trafilatura \
-  newspaper3k \
-  pandas \
-  tqdm \
-  requests
-```
+Add your OpenAI API key to `.env`:
 
----
-
-## ✅ 3️⃣ Add Your OpenAI API Key
-Create a `.env` file:
-
-```
+```dotenv
 OPENAI_API_KEY=sk-xxxx...
 ```
 
----
+The chatbot uses `gpt-5.6-luna` with reasoning disabled and a 1,500-token output cap.
 
-# ✅ How to Run the Project
+## Run
 
-## 🚀 Step 1 — Build the Vectorstore
-```bash
-python -m rag.ingest
-```
+If the included vectorstore is present, launch the application directly:
 
-## 🚀 Step 2 — Test the CrewAI Backend
-```bash
-python crew/main.py
-```
-
-## 🚀 Step 3 — Launch Streamlit
 ```bash
 streamlit run frontend/app.py
 ```
 
----
+The backend smoke test is optional:
 
-# 🧠 Advanced Prompting & Context Injection
+```bash
+python -m crew.main
+```
 
-- Multi-step task instructions
-- Forced tool usage
-- Strict citation rules
-- Automatic injection of RAG context into agent prompts
+## Refresh the News Corpus
 
----
+Fast RSS/Atom collection is the default:
 
-# ✅ Notes for Instructor / TA
-- `.env` is excluded
-- Vectorstore is reproducible
-- Streamlit UI directly calls CrewAI
-- Implements multi-agent + RAG + advanced prompting
+```bash
+python -m news_ingestion.scrape_news
+```
+
+Useful alternatives:
+
+```bash
+# Small reproducibility check without merging existing data
+python -m news_ingestion.scrape_news --max-per-source 5 --no-merge
+
+# Slower run that downloads missing article bodies
+python -m news_ingestion.scrape_news --full-text
+```
+
+The scraper uses 35 AI-focused sources and provides bounded concurrency, short retries, relevance filtering, URL normalization, deduplication, per-host throttling, and incremental CSV merging.
+
+Rebuild the vectorstore after refreshing the CSV:
+
+```bash
+python -m rag.ingest
+```
+
+Ingestion recreates the Chroma collection from scratch, preventing duplicate chunks across repeated builds.
+
+## Tests
+
+```bash
+python -m unittest discover -s tests -v
+```
+
+## Notes
+
+- `.env` and local virtual environments are excluded from Git.
+- Streamlit file watching is disabled because Transformers exposes optional vision modules that this text-only application does not use.
+- The included CSV and vectorstore make the application runnable after cloning; both can be regenerated from the documented pipeline.

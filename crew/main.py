@@ -1,6 +1,17 @@
 # crew/main.py
+import sys
+from pathlib import Path
+
+# Support both `python -m crew.main` and direct `python crew/main.py` execution.
+if __package__ in (None, ""):
+    project_root = str(Path(__file__).resolve().parents[1])
+    if project_root not in sys.path:
+        sys.path.insert(0, project_root)
+
 from crewai import Crew
-from crew.tasks import task_gather, task_answer
+
+from crew.tasks import task_answer, task_gather
+
 
 def kickoff_query(query: str, domain_directive: str):
     crew = Crew(

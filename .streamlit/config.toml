@@ -1,0 +1,5 @@
+[server]
+# Transformers exposes many optional lazy modules. Streamlit's source watcher
+# probes them and imports vision backends such as torchvision, which this
+# text-only application does not need.
+fileWatcherType = "none"

@@ -1,10 +1,11 @@
 from crewai import Agent
+
 from crew.llm import chatgpt_llm
 from crew.tools import (
-    retrieve_context,
-    retrieve_citations,
-    summarize_text,
     extract_keywords,
+    retrieve_citations,
+    retrieve_context,
+    summarize_text,
 )
 
 news_researcher = Agent(

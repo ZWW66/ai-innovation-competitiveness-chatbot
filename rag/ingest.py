@@ -1,15 +1,16 @@
 # rag/ingest.py
-# pip install pandas sentence-transformers chromadb langchain-community tqdm
 
 import os
 import re
+import shutil
 from glob import glob
+
 import pandas as pd
-from tqdm import tqdm
-from sentence_transformers import SentenceTransformer
-from langchain_community.vectorstores import Chroma
+from langchain_chroma import Chroma
 from langchain_core.documents import Document
-from langchain.embeddings.base import Embeddings
+from tqdm import tqdm
+
+from rag.embeddings import SentenceTransformerEmbeddings
 
 # ---- Paths ----
 PROJECT_ROOT = "."
@@ -52,18 +53,6 @@ def _chunk(text: str, max_words=350, overlap=50) -> list[str]:
             break
         start = max(0, end - overlap)
     return chunks
-
-# ---- Embedding wrapper for SentenceTransformers ----
-class STEmbeddings(Embeddings):
-    def __init__(self, model_name: str = "all-MiniLM-L6-v2"):
-        self.model = SentenceTransformer(model_name)
-
-    def embed_documents(self, texts: list[str]) -> list[list[float]]:
-        # normalize=True lets inner product behave like cosine in Chroma
-        return self.model.encode(texts, normalize_embeddings=True).tolist()
-
-    def embed_query(self, text: str) -> list[float]:
-        return self.model.encode([text], normalize_embeddings=True)[0].tolist()
 
 def build_vectorstore(csv_path: str | None = None,
                       chroma_dir: str = CHROMA_DIR,
@@ -109,17 +98,17 @@ def build_vectorstore(csv_path: str | None = None,
             )
     print(f"🧩 Total chunks: {len(docs)}")
 
-    # Build / overwrite persistent Chroma collection
+    # Rebuild from scratch so repeated ingestion cannot duplicate old chunks.
+    if os.path.isdir(chroma_dir):
+        shutil.rmtree(chroma_dir)
     os.makedirs(chroma_dir, exist_ok=True)
-    embeddings = STEmbeddings(model_name=model_name)
-    # Using from_documents will rebuild the collection each run (good for assignment repeatability)
-    vectordb = Chroma.from_documents(
+    embeddings = SentenceTransformerEmbeddings(model_name=model_name)
+    Chroma.from_documents(
         docs,
         embedding=embeddings,
         collection_name="news-ai",
         persist_directory=chroma_dir,
     )
-    vectordb.persist()
     print(f"💾 Chroma vector store saved to: {chroma_dir}")
 
 if __name__ == "__main__":
